@@ -12,12 +12,13 @@
         </div>
         <el-dropdown-menu slot="dropdown" class="user-dropdown">
           <router-link to="/">
-            <el-dropdown-item>
-              Home
-            </el-dropdown-item>
+            <el-dropdown-item>主 页</el-dropdown-item>
+          </router-link>
+          <router-link to="/personal/index">
+            <el-dropdown-item>个人资料</el-dropdown-item>
           </router-link>
           <el-dropdown-item divided @click.native="logout">
-            <span style="display:block;">登出</span>
+            <span style="display:block;">登 出</span>
           </el-dropdown-item>
         </el-dropdown-menu>
       </el-dropdown>

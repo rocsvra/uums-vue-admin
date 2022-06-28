@@ -80,6 +80,19 @@ const createRouter = () => new Router({
 })
 
 export const asyncRoutes = [
+  {
+    path: '/personal',
+    component: Layout,
+    redirect: '/personal/index',
+    children: [
+      {
+        path: 'index',
+        name: 'personal',
+        component: () => import('@/views/personal/index'),
+        meta: { title: '个人资料', icon: 'el-icon-user-solid' }
+      }
+    ]
+  },
   { path: '*', redirect: '/404', hidden: true }
 ]
 

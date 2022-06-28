@@ -54,10 +54,10 @@ const actions = {
     return new Promise((resolve, reject) => {
       getUserMenu().then(res => {
         const menuData = Object.assign([], res)
-        const tempAsyncRoutes = Object.assign([], asyncRoutes)
-        const accessedRoutes = getMenus(tempAsyncRoutes, menuData)
-        commit('SET_ROUTES', accessedRoutes)
-        resolve(accessedRoutes)
+        const accessedRoutes = getMenus([], menuData)
+        var tempAsyncRoutes = accessedRoutes.concat(asyncRoutes)
+        commit('SET_ROUTES', tempAsyncRoutes)
+        resolve(tempAsyncRoutes)
       }).catch(error => {
         reject(error)
       })

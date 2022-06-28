@@ -17,6 +17,7 @@ service.interceptors.request.use(
 
     if (store.getters.token) {
       config.headers.Authorization = 'Bearer ' + getToken()
+      config.headers.ContentType = 'application/json'
     }
     return config
   },

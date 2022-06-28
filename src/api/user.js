@@ -24,3 +24,19 @@ export function getUserinfo() {
     method: 'get'
   })
 }
+
+export function updateAvatar(fileId) {
+  return request({
+    url: '/self/avatar',
+    method: 'put',
+    params: { fileId }
+  })
+}
+
+export function updateBase(data) {
+  return request({
+    url: '/self/base',
+    method: 'put',
+    data
+  })
+}

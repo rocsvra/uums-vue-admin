@@ -1,44 +1,24 @@
 <template>
   <div class="app-container">
     <div class="filter-container">
-      <el-input v-model="queryCondition.name" placeholder="姓名" style="width: 150px" class="filter-item" @keyup.enter.native="handleFilter" />
+      <el-input v-model="queryCondition.name" placeholder="姓名" style="width: 150px;" class="filter-item" @keyup.enter.native="handleFilter" />
       <el-tooltip class="item" effect="dark" content="搜索" placement="top-start">
         <el-button class="filter-item" type="primary" icon="el-icon-search" @click="handleFilter" />
       </el-tooltip>
-      <el-tooltip
-        class="item"
-        effect="dark"
-        content="新增用户"
-        placement="top-start"
-      >
-        <el-button
-          class="filter-item"
-          style="margin-left: 10px"
-          type="primary"
-          icon="el-icon-plus"
-          @click="handleCreate"
-        />
+      <el-tooltip class="item" effect="dark" content="新增用户" placement="top-start">
+        <el-button class="filter-item" type="primary" icon="el-icon-plus" @click="handleCreate" />
       </el-tooltip>
     </div>
 
-    <el-table
-      v-loading="listLoading"
-      :data="list"
-      element-loading-text="Loading"
-      border
-      fit
-      highlight-current-row
-    >
+    <el-table v-loading="listLoading" :data="list" element-loading-text="Loading" border fit highlight-current-row>
       <el-table-column align="center" label="序号" width="80">
         <template slot-scope="scope">{{ scope.$index + 1 }}</template>
       </el-table-column>
       <el-table-column label="姓名" width="100" align="left">
         <template slot-scope="{ row }">{{ row.Name }}</template>
       </el-table-column>
-      <el-table-column label="账号/工号" width="110" align="left">
-        <template slot-scope="{ row }">
-          <span>{{ row.Account }}</span>
-        </template>
+      <el-table-column label="账号" width="110" align="left">
+        <template slot-scope="{ row }"><span>{{ row.Account }}</span></template>
       </el-table-column>
       <el-table-column label="性别" width="70" align="center">
         <template slot-scope="{ row }">{{ row.Sex ? '男' : '女' }}</template>
@@ -52,50 +32,22 @@
       <el-table-column label="创建时间" width="200" align="center">
         <template slot-scope="{ row }">{{ row.CreatedAt }}</template>
       </el-table-column>
-      <el-table-column
-        label="操作"
-        align="center"
-        width="150"
-        class-name="small-padding fixed-width"
-      >
+      <el-table-column label="操作" align="center" width="150" class-name="small-padding fixed-width">
         <template slot-scope="{ row }">
-          <el-button
-            type="primary"
-            size="mini"
-            icon="el-icon-edit"
-            @click="handleUpdate(row)"
-          />
-          <el-button
-            size="mini"
-            type="danger"
-            icon="el-icon-delete"
-            @click="handleDelete(row)"
-          />
+          <el-button type="primary" size="mini" icon="el-icon-edit" @click="handleUpdate(row)" />
+          <el-button size="mini" type="danger" icon="el-icon-delete" @click="handleDelete(row)" />
         </template>
       </el-table-column>
     </el-table>
 
-    <pagination
-      v-show="total > 0"
-      :total="total"
-      :page.sync="queryCondition.pageIndex"
-      :limit.sync="queryCondition.pageSize"
-      @pagination="fetchData"
-    />
+    <pagination v-show="total > 0" :total="total" :page.sync="queryCondition.pageIndex" :limit.sync="queryCondition.pageSize" @pagination="fetchData" />
 
-    <el-dialog :title="textMap[dialogStatus]" :visible.sync="dialogFormVisible">
-      <el-form
-        ref="dataForm"
-        :rules="formRules"
-        :model="temp"
-        label-position="left"
-        label-width="100px"
-        style="width: 500px; margin-left: 50px"
-      >
+    <el-dialog :title="textMap[dialogStatus]" :visible.sync="dialogFormVisible" width="650px">
+      <el-form ref="dataForm" :rules="formRules" :model="temp" label-position="left" label-width="100px" style="width: 450px; margin-left: 20px">
         <el-form-item label="姓名" prop="Name">
           <el-input v-model="temp.Name" />
         </el-form-item>
-        <el-form-item label="账号/工号" prop="Account">
+        <el-form-item label="账号" prop="Account">
           <el-input v-model="temp.Account" />
         </el-form-item>
         <el-form-item label="性别">
@@ -113,10 +65,7 @@
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="dialogFormVisible = false">取消</el-button>
-        <el-button
-          type="primary"
-          @click="dialogStatus === 'create' ? createData() : updateData()"
-        >
+        <el-button type="primary" @click="dialogStatus === 'create' ? createData() : updateData()">
           确认
         </el-button>
       </div>
@@ -156,7 +105,7 @@ export default {
 
     return {
       queryCondition: {
-        pageIndex: 0,
+        pageIndex: 1,
         pageSize: 10,
         name: ''
       },
@@ -201,7 +150,7 @@ export default {
       })
     },
     handleFilter() {
-      this.queryCondition.pageIndex = 0
+      this.queryCondition.pageIndex = 1
       this.fetchData()
     },
     handleCreate() {
@@ -264,8 +213,7 @@ export default {
       this.$confirm('确认删除?', '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
-        type: 'warning',
-        customClass: 'winClass'
+        type: 'warning'
       })
         .then(() => {
           this.deleteData(row)
@@ -292,9 +240,3 @@ export default {
   }
 }
 </script>
-
-<style>
-.winClass {
-  width: 400px;
-}
-</style>

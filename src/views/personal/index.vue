@@ -4,6 +4,50 @@
       <template slot="paneL">
         <div class="left-container">
           <el-form
+            ref="pswForm"
+            :rules="pswRules"
+            :model="temp"
+            label-position="left"
+            label-width="80px"
+            style="margin: 30px"
+          >
+            <h3>头像</h3>
+            <pan-thumb :image="image" style="margin-left: 80px;" />
+            <el-form-item style="text-align: right">
+              <el-button type="primary" icon="el-icon-upload" @click="imagecropperShow=true">
+                变更头像
+              </el-button>
+            </el-form-item>
+            <image-cropper
+              v-show="imagecropperShow"
+              :ki="imagecropperKey"
+              :width="300"
+              :height="300"
+              :max-size="5000"
+              url="/filestorage/base64"
+              @close="imagecropperShow = false"
+              @crop-upload-success="cropSuccess"
+              @crop-upload-fail="cropFail"
+            />
+            <h3>修改密码</h3>
+            <el-form-item label="旧密码">
+              <el-input v-model="psw.old" placeholder="请输入密码" show-password />
+            </el-form-item>
+            <el-form-item label="新密码">
+              <el-input v-model="psw.new" placeholder="请输入密码" show-password />
+            </el-form-item>
+            <el-form-item label="确认密码">
+              <el-input v-model="psw.confirm" placeholder="请输入密码" show-password />
+            </el-form-item>
+            <el-form-item style="text-align: right">
+              <el-button type="primary" @click="updatePsw()">修改密码</el-button>
+            </el-form-item>
+          </el-form>
+        </div>
+      </template>
+      <template slot="paneR">
+        <div class="right-container">
+          <el-form
             ref="dataForm"
             :rules="formRules"
             :model="temp"
@@ -11,8 +55,6 @@
             label-width="80px"
             style="margin: 30px"
           >
-            <h3>头像</h3>
-
             <h3>基本资料</h3>
             <el-form-item label="姓名">
               <el-input v-model="temp.Name" />
@@ -38,16 +80,6 @@
           </el-form>
         </div>
       </template>
-      <template slot="paneR">
-        <split-pane split="horizontal">
-          <template slot="paneL">
-            <div class="top-container" />
-          </template>
-          <template slot="paneR">
-            <div class="bottom-container" />
-          </template>
-        </split-pane>
-      </template>
     </split-pane>
   </div>
 </template>
@@ -56,10 +88,14 @@
 import splitPane from 'vue-splitpane'
 import { validAccount, validEmail, validMobile } from '@/utils/validate'
 import { getUserinfo } from '@/api/user'
+import ImageCropper from '@/components/ImageCropper'
+import PanThumb from '@/components/PanThumb'
+import { FILE_PATH } from '@/constants/uums-constants'
+import { updateAvatar, updateBase } from '@/api/user'
 
 export default {
   name: 'SplitpaneDemo',
-  components: { splitPane },
+  components: { splitPane, PanThumb, ImageCropper },
   data() {
     const validateAccout = (rule, value, callback) => {
       if (!validAccount(value)) {
@@ -84,6 +120,9 @@ export default {
     }
 
     return {
+      pswRules: {
+
+      },
       formRules: {
         Name: [{ required: true, message: '请输入姓名', trigger: 'blur' }],
         Account: [
@@ -100,7 +139,16 @@ export default {
         Sex: true,
         Mobile: '',
         Mail: ''
-      }
+      },
+      psw: {
+        old: '',
+        new: '',
+        confirm: ''
+      },
+      imagecropperShow: false,
+      imagecropperKey: 0,
+      image: this.$store.state.user.avatar,
+      fileId: ''
     }
   },
   created() {
@@ -111,6 +159,34 @@ export default {
       getUserinfo().then(response => {
         this.temp = response
       })
+    },
+    updateData() {
+      console.log(1323)
+      this.$refs['dataForm'].validate(valid => {
+        if (valid) {
+          updateBase(this.temp).then(response => {
+            this.$notify({
+              title: 'Success',
+              message: '更新成功',
+              type: 'success',
+              duration: 2000
+            })
+          })
+        }
+      })
+    },
+    cropSuccess(resData) {
+      this.imagecropperShow = false
+      this.imagecropperKey = this.imagecropperKey + 1
+      this.image = FILE_PATH + resData.url
+      this.fileId = resData.id
+      updateAvatar(this.fileId)
+        .catch(err => {
+          console.log(err)
+        })
+    },
+    cropFail(err) {
+      console.log(err)
     }
   }
 }
@@ -127,7 +203,7 @@ export default {
   }
 
   .right-container {
-    height: 200px;
+    height: 100%;
   }
 
   .top-container {
