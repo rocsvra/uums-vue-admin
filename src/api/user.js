@@ -40,3 +40,11 @@ export function updateBase(data) {
     data
   })
 }
+
+export function updatePsw(data) {
+  return request({
+    url: '/self/password',
+    method: 'put',
+    data
+  })
+}

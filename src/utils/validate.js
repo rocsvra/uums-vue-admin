@@ -24,7 +24,7 @@ export function validUsername(str) {
  * @returns {Boolean}
  */
 export function validAccount(str) {
-  const reg = /^[A-Za-z0-9]{6,29}$/
+  const reg = /^[A-Za-z0-9]{5,29}$/
   return reg.test(str)
 }
 

@@ -61,7 +61,6 @@ service.interceptors.response.use(
           duration: 5 * 1000
         })
     }
-    // console.log(error.response)
     return Promise.reject(error)
   }
 )

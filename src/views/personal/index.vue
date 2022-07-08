@@ -4,8 +4,8 @@
       <template slot="paneL">
         <div class="left-container">
           <el-form
-            ref="pswForm"
-            :rules="pswRules"
+            ref="dataForm"
+            :rules="formRules"
             :model="temp"
             label-position="left"
             label-width="80px"
@@ -29,37 +29,11 @@
               @crop-upload-success="cropSuccess"
               @crop-upload-fail="cropFail"
             />
-            <h3>修改密码</h3>
-            <el-form-item label="旧密码">
-              <el-input v-model="psw.old" placeholder="请输入密码" show-password />
-            </el-form-item>
-            <el-form-item label="新密码">
-              <el-input v-model="psw.new" placeholder="请输入密码" show-password />
-            </el-form-item>
-            <el-form-item label="确认密码">
-              <el-input v-model="psw.confirm" placeholder="请输入密码" show-password />
-            </el-form-item>
-            <el-form-item style="text-align: right">
-              <el-button type="primary" @click="updatePsw()">修改密码</el-button>
-            </el-form-item>
-          </el-form>
-        </div>
-      </template>
-      <template slot="paneR">
-        <div class="right-container">
-          <el-form
-            ref="dataForm"
-            :rules="formRules"
-            :model="temp"
-            label-position="left"
-            label-width="80px"
-            style="margin: 30px"
-          >
             <h3>基本资料</h3>
-            <el-form-item label="姓名">
+            <el-form-item label="姓名" prop="Name">
               <el-input v-model="temp.Name" />
             </el-form-item>
-            <el-form-item label="账号">
+            <el-form-item label="账号" prop="Account">
               <el-input v-model="temp.Account" />
             </el-form-item>
             <el-form-item label="性别">
@@ -68,14 +42,41 @@
                 <el-radio :label="false">女</el-radio>
               </el-radio-group>
             </el-form-item>
-            <el-form-item label="手机">
+            <el-form-item label="手机" prop="Mobile">
               <el-input v-model="temp.Mobile" />
             </el-form-item>
-            <el-form-item label="邮件">
+            <el-form-item label="邮件" prop="Mail">
               <el-input v-model="temp.Mail" />
             </el-form-item>
             <el-form-item style="text-align: right">
               <el-button type="primary" @click="updateData()">保存</el-button>
+            </el-form-item>
+          </el-form>
+
+        </div>
+      </template>
+      <template slot="paneR">
+        <div class="right-container">
+          <el-form
+            ref="pswForm"
+            :rules="pswRules"
+            :model="psw"
+            label-position="left"
+            label-width="80px"
+            style="margin: 30px"
+          >
+            <h3>修改密码</h3>
+            <el-form-item label="旧密码" prop="old">
+              <el-input v-model="psw.old" placeholder="请输入密码" show-password />
+            </el-form-item>
+            <el-form-item label="新密码" prop="new">
+              <el-input v-model="psw.new" placeholder="请输入密码" show-password />
+            </el-form-item>
+            <el-form-item label="确认密码" prop="confirm">
+              <el-input v-model="psw.confirm" placeholder="请输入密码" show-password />
+            </el-form-item>
+            <el-form-item style="text-align: right">
+              <el-button type="primary" @click="updatePsw()">修改密码</el-button>
             </el-form-item>
           </el-form>
         </div>
@@ -91,7 +92,7 @@ import { getUserinfo } from '@/api/user'
 import ImageCropper from '@/components/ImageCropper'
 import PanThumb from '@/components/PanThumb'
 import { FILE_PATH } from '@/constants/uums-constants'
-import { updateAvatar, updateBase } from '@/api/user'
+import { updateAvatar, updateBase, updatePsw } from '@/api/user'
 
 export default {
   name: 'SplitpaneDemo',
@@ -105,6 +106,7 @@ export default {
       }
     }
     const validateMobile = (rule, value, callback) => {
+      console.log(value)
       if (!validMobile(value)) {
         callback(new Error('手机号码不正确'))
       } else {
@@ -118,10 +120,19 @@ export default {
         callback()
       }
     }
+    const validatePassword = (rule, value, callback) => {
+      if (value.length < 6) {
+        callback(new Error('密码至少6位'))
+      } else {
+        callback()
+      }
+    }
 
     return {
       pswRules: {
-
+        old: [{ required: true, trigger: 'blur', validator: validatePassword }],
+        new: [{ required: true, trigger: 'blur', validator: validatePassword }],
+        confirm: [{ required: true, trigger: 'blur', validator: validatePassword }]
       },
       formRules: {
         Name: [{ required: true, message: '请输入姓名', trigger: 'blur' }],
@@ -161,10 +172,28 @@ export default {
       })
     },
     updateData() {
-      console.log(1323)
       this.$refs['dataForm'].validate(valid => {
         if (valid) {
           updateBase(this.temp).then(response => {
+            this.$notify({
+              title: 'Success',
+              message: '更新成功',
+              type: 'success',
+              duration: 2000
+            })
+          })
+        }
+      })
+    },
+    updatePsw() {
+      this.$refs['pswForm'].validate(valid => {
+        if (valid) {
+          var data = {
+            Password: this.psw.old,
+            RepeatPassword: this.psw.new,
+            NewPassword: this.psw.confirm
+          }
+          updatePsw(data).then(response => {
             this.$notify({
               title: 'Success',
               message: '更新成功',
