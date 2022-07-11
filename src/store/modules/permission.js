@@ -19,7 +19,8 @@ export function getMenus(routes, data) {
       name: itm.name,
       meta: {
         title: itm.meta.title,
-        icon: itm.meta.icon
+        icon: itm.meta.icon,
+        noCache: itm.meta.noCache
       },
       children: []
     }

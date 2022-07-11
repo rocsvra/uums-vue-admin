@@ -52,15 +52,15 @@
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width" fixed="right">
         <template slot-scope="{ row }">
           <el-button type="primary" size="mini" icon="el-icon-edit" @click="handleUpdate(row)" />
-          <!-- <el-button size="mini" type="danger" icon="el-icon-delete" @click="handleDelete(row)" /> -->
+          <el-button size="mini" type="danger" icon="el-icon-delete" @click="handleDelete(row)" />
         </template>
       </el-table-column>
     </el-table>
 
     <el-dialog :title="textMap[dialogStatus]" :visible.sync="dialogFormVisible" width="650px">
       <el-form ref="dataForm" :rules="formRules" :model="temp" label-position="left" label-width="100px" style="width: 450px; margin-left: 20px">
-        <el-form-item label="name">
-          <el-cascader ref="menuCascader" v-model="ParentIdData" clearable :options="parentOptions" :props="{ checkStrictly: true }" @change="handleParentIdChange" />
+        <el-form-item label="父节点">
+          <el-cascader ref="menuCascader" v-model="ParentIdData" :disabled="menuCascaderDisabled" clearable :options="parentOptions" :props="{ checkStrictly: true }" @change="handleParentIdChange" />
         </el-form-item>
         <el-form-item label="name" prop="Name">
           <el-input v-model="temp.Name" />
@@ -102,7 +102,7 @@
 </template>
 
 <script>
-import { getMenus, createMenu, updateMenu, deleteMenu } from '@/api/menumgt'
+import { getMenus, createMenu, updateMenu, deleteMenu, getPids } from '@/api/menumgt'
 
 export default {
   props: {
@@ -124,8 +124,7 @@ export default {
         Name: [{ required: true, message: '请输入name', trigger: 'blur' }],
         Path: [{ required: true, message: '请输入path', trigger: 'blur' }],
         Component: [{ required: true, message: '请输入component', trigger: 'blur' }],
-        Title: [{ required: true, message: '请输入title', trigger: 'blur' }],
-        Icon: [{ required: true, message: '请输入icon', trigger: 'blur' }]
+        Title: [{ required: true, message: '请输入title', trigger: 'blur' }]
       },
       dialogStatus: '',
       textMap: {
@@ -133,7 +132,7 @@ export default {
         create: '新建'
       },
       temp: {
-        Id: '',
+        Id: null,
         ClientId: this.type,
         ParentId: null,
         Name: '',
@@ -143,15 +142,18 @@ export default {
         Path: '',
         Component: '',
         Title: '',
+        Icon: '',
         NoCache: true,
         SortNo: 0
       },
       parentOptions: [],
-      ParentIdData: null
+      ParentIdData: null,
+      menuCascaderDisabled: true
     }
   },
   created() {
     this.fetchData()
+    this.getParentMenuData()
   },
   methods: {
     fetchData() {
@@ -166,10 +168,10 @@ export default {
       this.fetchData()
     },
     handleCreate() {
-      this.getParentMenuData()
+      this.menuCascaderDisabled = false
       this.ParentIdData = null
       this.temp = {
-        Id: '',
+        Id: null,
         ClientId: this.type,
         ParentId: null,
         Name: '',
@@ -179,6 +181,7 @@ export default {
         Path: '',
         Component: '',
         Title: '',
+        Icon: '',
         NoCache: true,
         SortNo: 0
       }
@@ -189,11 +192,26 @@ export default {
       })
     },
     createData() {
-
+      this.$refs['dataForm'].validate(valid => {
+        if (valid) {
+          console.log(this.temp)
+          createMenu(this.temp).then(response => {
+            this.fetchData()
+            this.dialogFormVisible = false
+            this.$notify({
+              title: 'Success',
+              message: '创建成功',
+              type: 'success',
+              duration: 2000
+            })
+          })
+        }
+      })
     },
     handleParentIdChange(value) {
       var node = this.$refs.menuCascader.getCheckedNodes()
       this.temp.ParentId = node[0].data.id
+      console.log(this.temp.ParentId)
     },
     getParentMenuData() {
       var condition = { clientId: this.type, name: '' }
@@ -202,14 +220,22 @@ export default {
       })
     },
     handleUpdate(row) {
-      this.temp = Object.assign({}, row) // copy obj
+      this.menuCascaderDisabled = true
+      getPids(row.id).then((response) => {
+        this.ParentIdData = response
+      })
+      this.temp.Id = row.id
       this.temp.ClientId = this.type
-
-      console.log(row)
-      console.log(this.temp.name)
-
-      this.getParentMenuData()
-      this.ParentIdData = null
+      this.temp.Name = row.name
+      this.temp.AlwaysShow = row.alwaysShow
+      this.temp.Hidden = row.hidden
+      this.temp.Redirect = row.redirect
+      this.temp.Path = row.path
+      this.temp.Component = row.component
+      this.temp.Title = row.meta.title
+      this.temp.Icon = row.meta.icon
+      this.temp.NoCache = row.meta.noCache
+      this.SortNo = row.sortNo
 
       this.dialogStatus = 'update'
       this.dialogFormVisible = true
@@ -221,8 +247,7 @@ export default {
       this.$refs['dataForm'].validate(valid => {
         if (valid) {
           updateMenu(this.temp.Id, this.temp).then(response => {
-            const index = this.list.findIndex(v => v.Id === this.temp.Id)
-            this.list.splice(index, 1, this.temp)
+            this.fetchData()
             this.dialogFormVisible = false
             this.$notify({
               title: 'Success',
@@ -232,6 +257,33 @@ export default {
             })
           })
         }
+      })
+    },
+    handleDelete(row) {
+      this.$confirm('确认删除?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      })
+        .then(() => {
+          this.deleteData(row)
+        })
+        .catch(() => {
+          this.$message({
+            type: 'info',
+            message: '取消删除'
+          })
+        })
+    },
+    deleteData(row) {
+      deleteMenu(row.id).then(response => {
+        this.fetchData()
+        this.$notify({
+          title: 'Success',
+          message: '删除成功',
+          type: 'success',
+          duration: 2000
+        })
       })
     }
   }

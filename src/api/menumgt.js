@@ -31,3 +31,11 @@ export function deleteMenu(id) {
     method: 'delete'
   })
 }
+
+export function getPids(id) {
+  return request({
+    url: '/menu/parentids/' + id,
+    method: 'get'
+  })
+}
+
